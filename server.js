@@ -26,6 +26,11 @@ connectDB();
 app.use("/api/contact", contactRoutes);
 app.use("/api/schedule", scheduleRoutes);
 
-app.listen(process.env.PORT, () =>
-  console.log(`🚀 Backend running at http://localhost:${process.env.PORT}`)
-);
+// app.listen(process.env.PORT, () =>
+//   console.log(`🚀 Backend running at http://localhost:${process.env.PORT}`)
+// );
+
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
