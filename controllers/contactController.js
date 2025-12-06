@@ -6,7 +6,7 @@ import { sendWhatsApp } from "../config/whatsapp.js";
 export async function submitContact(req, res) {
   try {
     let info = req.body;
-
+    
     // 🔹 Sanitize Inputs
     info.fullName = validator.trim(info.fullName || "");
     info.email = validator.trim(info.email || "");
