@@ -53,6 +53,7 @@ const limiter = rateLimit({
 const app = express();
 app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // CORS FIX
 app.use(cors({
