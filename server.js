@@ -53,25 +53,24 @@ const limiter = rateLimit({
 const app = express();
 app.use(express.static("public"));
 app.use(express.json());
-app.use(limiter);
 
 // CORS FIX
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://quantumnestpeetron.onrender.com" // your Render backend allowed
-    ],
-    methods: ["GET", "POST"],
-  })
-);
+app.use(cors({
+  origin: ["http://localhost:3000", "https://qnpeetron.com","https://quantumnestpeetron.onrender.com"],
+  methods: ["GET", "POST", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.options(/.*/, cors());
 
-// connect database
+// Rate limiter AFTER CORS
+app.use(limiter);
+
 connectDB();
 
-// routes
 app.use("/api/contact", contactRoutes);
 app.use("/api/schedule", scheduleRoutes);
+
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
