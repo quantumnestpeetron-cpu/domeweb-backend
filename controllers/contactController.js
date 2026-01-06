@@ -6,7 +6,7 @@
 // export async function submitContact(req, res) {
 //   try {
 //     let info = req.body;
-    
+
 //     // 🔹 Sanitize Inputs
 //     info.fullName = validator.trim(info.fullName || "");
 //     info.email = validator.trim(info.email || "");
@@ -85,11 +85,11 @@
 //     // ✅ SEND WHATSAPP MESSAGE
 //     // -------------------------------
 //     await sendWhatsApp(`
-// 📩 NEW CONTACT MESSAGE  
-// Name: ${info.fullName}  
-// Email: ${info.email}  
-// Phone: ${info.phone}  
-// Company: ${info.company}  
+// 📩 NEW CONTACT MESSAGE
+// Name: ${info.fullName}
+// Email: ${info.email}
+// Phone: ${info.phone}
+// Company: ${info.company}
 // Message: ${info.message}
 //     `);
 
@@ -104,12 +104,80 @@
 //   }
 // }
 
+// import validator from "validator";
+// import Contact from "../models/Contact.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export async function submitContact(req, res) {
+//   try {
+//     console.log("📩 Incoming Contact:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       company: validator.trim(req.body.company || ""),
+//       message: validator.escape(req.body.message || ""),
+//     };
+
+//     // Validate
+//     if (!info.fullName || !info.email || !info.phone || !info.message) {
+//       return res.status(400).json({ success: false, error: "All fields required" });
+//     }
+
+//     if (!validator.isEmail(info.email)) {
+//       return res.status(400).json({ success: false, error: "Invalid email" });
+//     }
+
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({ success: false, error: "Invalid phone" });
+//     }
+
+//     // Save to MongoDB
+//     let saved;
+//     try {
+//       saved = await Contact.create(info);
+//       console.log("✅ Saved to MongoDB:", saved._id);
+//     } catch (dbErr) {
+//       console.error("❌ MongoDB Error:", dbErr);
+//       return res.status(500).json({ success: false, error: "Database error" });
+//     }
+
+//     // Send success response FIRST
+//     res.status(201).json({ success: true, message: "Message received" });
+
+//     // Email (do not block API)
+//     if (process.env.ADMIN_EMAIL) {
+//       sendEmail(
+//         process.env.ADMIN_EMAIL,
+//         "New Contact",
+//         `
+// Name: ${info.fullName}
+// Email: ${info.email}
+// Phone: ${info.phone}
+// Company: ${info.company}
+// Message: ${info.message}
+//         `
+//       ).catch(err => console.log("📧 Email error:", err.message));
+//     }
+
+//     // WhatsApp (do not block API)
+//     sendWhatsApp(`New Contact: ${info.fullName}, ${info.phone}`)
+//       .catch(err => console.log("📲 WhatsApp error:", err.message));
+
+//   } catch (err) {
+//     console.error("🔥 CONTACT API CRASH:", err);
+//     res.status(500).json({ success: false, error: "Server crashed" });
+//   }
+// }
+
 import validator from "validator";
 import Contact from "../models/Contact.js";
 import { sendEmail } from "../config/email.js";
 import { sendWhatsApp } from "../config/whatsapp.js";
 
-export async function submitContact(req, res) {
+export const submitContact = async (req, res) => {
   try {
     console.log("📩 Incoming Contact:", req.body);
 
@@ -121,9 +189,11 @@ export async function submitContact(req, res) {
       message: validator.escape(req.body.message || ""),
     };
 
-    // Validate
+    // ---------------- VALIDATION ----------------
     if (!info.fullName || !info.email || !info.phone || !info.message) {
-      return res.status(400).json({ success: false, error: "All fields required" });
+      return res
+        .status(400)
+        .json({ success: false, error: "All fields required" });
     }
 
     if (!validator.isEmail(info.email)) {
@@ -131,44 +201,52 @@ export async function submitContact(req, res) {
     }
 
     if (!validator.isMobilePhone(info.phone, "en-IN")) {
-      return res.status(400).json({ success: false, error: "Invalid phone" });
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid phone number" });
     }
 
-    // Save to MongoDB
-    let saved;
+    // ---------------- SAVE TO MONGODB ----------------
+    let savedContact;
     try {
-      saved = await Contact.create(info);
-      console.log("✅ Saved to MongoDB:", saved._id);
+      savedContact = await Contact.create(info);
+      console.log("✅ Saved to MongoDB:", savedContact._id);
     } catch (dbErr) {
       console.error("❌ MongoDB Error:", dbErr);
       return res.status(500).json({ success: false, error: "Database error" });
     }
 
-    // Send success response FIRST
-    res.status(201).json({ success: true, message: "Message received" });
+    // ---------------- SEND RESPONSE FIRST ----------------
+    res.status(201).json({
+      success: true,
+      message: "Message received successfully",
+      id: savedContact._id,
+    });
 
-    // Email (do not block API)
+    // ---------------- SEND EMAIL (Background) ----------------
     if (process.env.ADMIN_EMAIL) {
       sendEmail(
         process.env.ADMIN_EMAIL,
-        "New Contact",
+        "New Contact Message",
         `
-Name: ${info.fullName}
-Email: ${info.email}
-Phone: ${info.phone}
-Company: ${info.company}
-Message: ${info.message}
+                   Name: ${info.fullName}
+                  Email: ${info.email}
+                  Phone: ${info.phone}
+                  Company: ${info.company}
+                  Message: ${info.message}
         `
-      ).catch(err => console.log("📧 Email error:", err.message));
+      ).catch((err) => console.log("📧 Email failed:", err.message));
     }
 
-    // WhatsApp (do not block API)
-    sendWhatsApp(`New Contact: ${info.fullName}, ${info.phone}`)
-      .catch(err => console.log("📲 WhatsApp error:", err.message));
-
+    // ---------------- SEND WHATSAPP (Background) ----------------
+    sendWhatsApp(
+      `New Contact:
+       Name: ${info.fullName}
+       Phone: ${info.phone}
+       Email: ${info.email}`
+    ).catch((err) => console.log("📲 WhatsApp failed:", err.message));
   } catch (err) {
     console.error("🔥 CONTACT API CRASH:", err);
     res.status(500).json({ success: false, error: "Server crashed" });
   }
-}
-
+};
