@@ -170,12 +170,12 @@ export const submitSchedule = async (req, res) => {
         process.env.ADMIN_EMAIL,
         "New Consultation Scheduled",
         `
-Name: ${info.fullName}
-Phone: ${info.phone}
-Email: ${info.email || "N/A"}
-Date: ${info.date}
-Time: ${info.time}
-Message: ${info.message || "None"}
+         Name: ${info.fullName}
+         Phone: ${info.phone}
+         Email: ${info.email || "N/A"}
+         Date: ${info.date}
+         Time: ${info.time}
+         Message: ${info.message || "None"}
         `
       ).catch(err => console.log("📧 Email failed:", err.message));
     }
@@ -183,10 +183,10 @@ Message: ${info.message || "None"}
     // ---------- WHATSAPP (Background) ----------
     sendWhatsApp(
       `New Schedule:
-Name: ${info.fullName}
-Phone: ${info.phone}
-Date: ${info.date}
-Time: ${info.time}`
+        Name: ${info.fullName}
+        Phone: ${info.phone}
+        Date: ${info.date}
+        Time: ${info.time}`
     ).catch(err => console.log("📲 WhatsApp failed:", err.message));
 
   } catch (err) {
