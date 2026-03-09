@@ -717,7 +717,7 @@ export const submitSchedule = async (req, res) => {
         info.phone,
 `Hello ${info.fullName} 👋
 
-✅ Your FREE software demo consultation is confirmed.
+✅ Your FREE software consultation is confirmed.
 
 📅 Date: ${info.date}
 ⏰ Time: ${info.time}
