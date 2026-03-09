@@ -6,7 +6,7 @@ import {
   deleteSchedule
 } from "../controllers/adminController.js";
 
-import { adminAuth } from "../middleware/adminAuth.js"; // 🔐 ADD THIS
+import { adminAuth } from "../middleware/adminAuth.js"; 
 
 const router = express.Router();
 

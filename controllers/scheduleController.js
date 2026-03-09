@@ -116,13 +116,559 @@
 // }
 
 
+// import validator from "validator";
+// import Schedule from "../models/Schedule.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export const submitSchedule = async (req, res) => {
+//   try {
+//     console.log("📅 Incoming Schedule:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       date: validator.trim(req.body.date || ""),
+//       time: validator.trim(req.body.time || ""),
+//       message: validator.escape(req.body.message || "")
+//     };
+
+//     // ---------- VALIDATION ----------
+//     if (!info.fullName || !info.phone || !info.date || !info.time) {
+//       return res.status(400).json({ success: false, error: "Missing required fields" });
+//     }
+
+//     if (info.email && !validator.isEmail(info.email)) {
+//       return res.status(400).json({ success: false, error: "Invalid email" });
+//     }
+
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({ success: false, error: "Invalid phone number" });
+//     }
+
+//     // ---------- SAVE TO MONGODB ----------
+//     let saved;
+//     try {
+//       saved = await Schedule.create(info);
+//       console.log("✅ Schedule saved:", saved._id);
+//     } catch (dbErr) {
+//       console.error("❌ MongoDB error:", dbErr);
+//       return res.status(500).json({ success: false, error: "Database error" });
+//     }
+
+//     // ---------- SEND RESPONSE FIRST ----------
+//     res.status(201).json({
+//       success: true,
+//       message: "Schedule booked successfully",
+//       id: saved._id
+//     });
+
+//     // ---------- EMAIL (Background) ----------
+//     if (process.env.ADMIN_EMAIL) {
+//       sendEmail(
+//         process.env.ADMIN_EMAIL,
+//         "New Consultation Scheduled",
+//         `
+//          Name: ${info.fullName}
+//          Phone: ${info.phone}
+//          Email: ${info.email || "N/A"}
+//          Date: ${info.date}
+//          Time: ${info.time}
+//          Message: ${info.message || "None"}
+//         `
+//       ).catch(err => console.log("📧 Email failed:", err.message));
+//     }
+
+//     // ---------- WHATSAPP (Background) ----------
+//     sendWhatsApp(
+//       `New Schedule:
+//         Name: ${info.fullName}
+//         Phone: ${info.phone}
+//         Date: ${info.date}
+//         Time: ${info.time}`
+//     ).catch(err => console.log("📲 WhatsApp failed:", err.message));
+
+//   } catch (err) {
+//     console.error("🔥 SCHEDULE API CRASH:", err);
+//     res.status(500).json({ success: false, error: "Server crashed" });
+//   }
+// };
+
+
+// import validator from "validator";
+// import Schedule from "../models/Schedule.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export const submitSchedule = async (req, res) => {
+//   try {
+//     console.log("📅 Incoming Schedule:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       date: validator.trim(req.body.date || ""),
+//       time: validator.trim(req.body.time || ""),
+//       message: validator.escape(req.body.message || "")
+//     };
+
+//     // ---------- VALIDATION ----------
+//     if (!info.fullName || !info.phone || !info.date || !info.time) {
+//       return res.status(400).json({ success: false, error: "Missing required fields" });
+//     }
+
+//     if (info.email && !validator.isEmail(info.email)) {
+//       return res.status(400).json({ success: false, error: "Invalid email" });
+//     }
+
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({ success: false, error: "Invalid phone number" });
+//     }
+
+//     // ---------- SAVE TO MONGODB ----------
+//     let saved;
+//     try {
+//       saved = await Schedule.create(info);
+//       console.log("✅ Schedule saved:", saved._id);
+//     } catch (dbErr) {
+//       console.error("❌ MongoDB error:", dbErr);
+//       return res.status(500).json({ success: false, error: "Database error" });
+//     }
+
+//     // ---------- SEND RESPONSE FIRST ----------
+//     res.status(201).json({
+//       success: true,
+//       message: "Schedule booked successfully",
+//       id: saved._id
+//     });
+
+//     // ---------- EMAIL (Background) ----------
+//     if (process.env.ADMIN_EMAIL) {
+//       sendEmail(
+//         process.env.ADMIN_EMAIL,
+//         "New Consultation Scheduled",
+//         `
+// Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+// Date: ${info.date}
+// Time: ${info.time}
+// Message: ${info.message || "None"}
+//         `
+//       ).catch(err => console.log("📧 Email failed:", err.message));
+//     }
+
+//     // ---------- WHATSAPP USER CONFIRMATION ----------
+//     sendWhatsApp(
+//       info.phone,
+//       `Hello ${info.fullName} 👋
+
+// ✅ Your consultation with QuantumNest Peetron has been scheduled.
+
+// 📅 Date: ${info.date}
+// ⏰ Time: ${info.time}
+
+// Our team will contact you shortly.`
+//     ).catch(err => console.log("📲 WhatsApp user failed:", err.message));
+
+//     // ---------- WHATSAPP ADMIN ALERT ----------
+//     sendWhatsApp(
+//       process.env.ADMIN_WHATSAPP,
+//       `📅 New Consultation Scheduled
+
+// Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+
+// Date: ${info.date}
+// Time: ${info.time}
+
+// Message:
+// ${info.message || "None"}`
+//     ).catch(err => console.log("📲 WhatsApp admin failed:", err.message));
+
+//   } catch (err) {
+//     console.error("🔥 SCHEDULE API CRASH:", err);
+//     res.status(500).json({ success: false, error: "Server crashed" });
+//   }
+// };
+
+// import validator from "validator";
+// import Schedule from "../models/Schedule.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export const submitSchedule = async (req, res) => {
+//   try {
+
+//     console.log("📅 Incoming Schedule:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       date: validator.trim(req.body.date || ""),
+//       time: validator.trim(req.body.time || ""),
+//       message: validator.escape(req.body.message || "")
+//     };
+
+//     if (!info.fullName || !info.phone || !info.date || !info.time) {
+//       return res.status(400).json({ success: false, error: "Missing required fields" });
+//     }
+
+//     if (info.email && !validator.isEmail(info.email)) {
+//       return res.status(400).json({ success: false, error: "Invalid email" });
+//     }
+
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({ success: false, error: "Invalid phone number" });
+//     }
+
+//     const saved = await Schedule.create(info);
+
+//     console.log("✅ Schedule saved:", saved._id);
+
+//     // USER CONFIRMATION
+//     await sendWhatsApp(
+//       info.phone,
+//       `Hello ${info.fullName} 👋
+
+// ✅ Your consultation has been scheduled.
+
+// 📅 Date: ${info.date}
+// ⏰ Time: ${info.time}
+
+// Our team will contact you shortly.`
+//     );
+
+//     // ADMIN ALERT
+//     await sendWhatsApp(
+//       process.env.ADMIN_WHATSAPP,
+//       `📅 New Consultation Scheduled
+
+// Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+
+// Date: ${info.date}
+// Time: ${info.time}
+
+// Message:
+// ${info.message || "None"}`
+//     );
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Schedule booked successfully",
+//       id: saved._id
+//     });
+
+//   } catch (err) {
+//     console.error("🔥 SCHEDULE API CRASH:", err);
+//     res.status(500).json({ success: false, error: "Server crashed" });
+//   }
+// };
+
+// import validator from "validator";
+// import Schedule from "../models/Schedule.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export const submitSchedule = async (req, res) => {
+//   try {
+
+//     console.log("📅 Incoming Schedule:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       date: validator.trim(req.body.date || ""),
+//       time: validator.trim(req.body.time || ""),
+//       message: validator.escape(req.body.message || "")
+//     };
+
+//     // Required fields
+//     if (!info.fullName || !info.phone || !info.date || !info.time) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Missing required fields"
+//       });
+//     }
+
+//     // Email validation
+//     if (info.email && !validator.isEmail(info.email)) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid email"
+//       });
+//     }
+
+//     // Phone validation
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid phone number"
+//       });
+//     }
+
+//     // Save in MongoDB
+//     const saved = await Schedule.create(info);
+
+//     console.log("✅ Schedule saved:", saved._id);
+
+//     /* ----------------------------------
+//        USER WHATSAPP MESSAGE
+//     ---------------------------------- */
+
+//     try {
+//       await sendWhatsApp(
+//         info.phone,
+// `Hello ${info.fullName} 👋
+
+// ✅ Your consultation has been scheduled.
+
+// 📅 Date: ${info.date}
+// ⏰ Time: ${info.time}
+
+// Our team will contact you shortly.`
+//       );
+//     } catch (err) {
+//       console.log("⚠️ User WhatsApp failed:", err.message);
+//     }
+
+//     /* ----------------------------------
+//        ADMIN WHATSAPP MESSAGE
+//     ---------------------------------- */
+
+//     try {
+//       await sendWhatsApp(
+//         process.env.ADMIN_WHATSAPP,
+// `📅 New Consultation Scheduled
+
+// Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+
+// Date: ${info.date}
+// Time: ${info.time}
+
+// Message:
+// ${info.message || "None"}`
+//       );
+//     } catch (err) {
+//       console.log("⚠️ Admin WhatsApp failed:", err.message);
+//     }
+
+//     /* ----------------------------------
+//        OPTIONAL EMAIL NOTIFICATION
+//     ---------------------------------- */
+
+//     if (process.env.ADMIN_EMAIL) {
+//       sendEmail(
+//         process.env.ADMIN_EMAIL,
+//         "New Consultation Scheduled",
+// `Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+
+// Date: ${info.date}
+// Time: ${info.time}
+
+// Message:
+// ${info.message || "None"}`
+//       );
+//     }
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Schedule booked successfully",
+//       id: saved._id
+//     });
+
+//   } catch (err) {
+
+//     console.error("🔥 SCHEDULE API CRASH:", err);
+
+//     res.status(500).json({
+//       success: false,
+//       error: "Server crashed"
+//     });
+
+//   }
+// };
+
+// import validator from "validator";
+// import Schedule from "../models/Schedule.js";
+// import { sendEmail } from "../config/email.js";
+// import { sendWhatsApp } from "../config/whatsapp.js";
+
+// export const submitSchedule = async (req, res) => {
+//   try {
+
+//     console.log("📅 Incoming Schedule:", req.body);
+
+//     const info = {
+//       fullName: validator.trim(req.body.fullName || ""),
+//       email: validator.trim(req.body.email || ""),
+//       phone: validator.trim(req.body.phone || ""),
+//       date: validator.trim(req.body.date || ""),
+//       time: validator.trim(req.body.time || ""),
+//       message: validator.escape(req.body.message || "")
+//     };
+
+//     /* ----------------------------------
+//        REQUIRED FIELD VALIDATION
+//     ---------------------------------- */
+
+//     if (!info.fullName || !info.phone || !info.date || !info.time) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Missing required fields"
+//       });
+//     }
+
+//     /* ----------------------------------
+//        EMAIL VALIDATION
+//     ---------------------------------- */
+
+//     if (info.email && !validator.isEmail(info.email)) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid email"
+//       });
+//     }
+
+//     /* ----------------------------------
+//        PHONE VALIDATION
+//     ---------------------------------- */
+
+//     if (!validator.isMobilePhone(info.phone, "en-IN")) {
+//       return res.status(400).json({
+//         success: false,
+//         error: "Invalid phone number"
+//       });
+//     }
+
+//     /* ----------------------------------
+//        SAVE DATA IN MONGODB
+//     ---------------------------------- */
+
+//     const saved = await Schedule.create(info);
+
+//     console.log("✅ Schedule saved:", saved._id);
+
+//     /* ----------------------------------
+//        USER WHATSAPP MESSAGE
+//     ---------------------------------- */
+
+//     try {
+//       await sendWhatsApp(
+//         info.phone,
+// `Hello ${info.fullName} 👋
+
+// ✅ Your FREE software demo consultation is confirmed.
+
+// 📅 Date: ${info.date}
+// ⏰ Time: ${info.time}
+
+// Our expert will guide you about:
+// • Tally Prime
+// • Marg ERP
+// • Busy Accounting Software
+// • CCTV Services
+// • AC Services
+
+// 🎁 Free Setup Guidance Included
+
+// 📞 Call / WhatsApp
+// +91 9105524440
+
+// QuantumNest Peetron`
+//       );
+//     } catch (err) {
+//       console.log("⚠️ User WhatsApp failed:", err.message);
+//     }
+
+//     /* ----------------------------------
+//        ADMIN WHATSAPP MESSAGE
+//     ---------------------------------- */
+
+//     try {
+//       await sendWhatsApp(
+//         process.env.ADMIN_WHATSAPP,
+// `🔥 New Demo Consultation Booked
+
+// 👤 Name: ${info.fullName}
+// 📞 Phone: ${info.phone}
+// 📧 Email: ${info.email || "N/A"}
+
+// 📅 Date: ${info.date}
+// ⏰ Time: ${info.time}
+
+// 💬 Message:
+// ${info.message || "No message"}
+
+// 🌐 Source: Website Demo Scheduler`
+//       );
+//     } catch (err) {
+//       console.log("⚠️ Admin WhatsApp failed:", err.message);
+//     }
+
+//     /* ----------------------------------
+//        EMAIL NOTIFICATION
+//     ---------------------------------- */
+
+//     if (process.env.ADMIN_EMAIL) {
+//       sendEmail(
+//         process.env.ADMIN_EMAIL,
+//         "New Demo Consultation Scheduled",
+// `Name: ${info.fullName}
+// Phone: ${info.phone}
+// Email: ${info.email || "N/A"}
+
+// Date: ${info.date}
+// Time: ${info.time}
+
+// Message:
+// ${info.message || "None"}`
+//       );
+//     }
+
+//     /* ----------------------------------
+//        FINAL RESPONSE
+//     ---------------------------------- */
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Schedule booked successfully",
+//       id: saved._id
+//     });
+
+//   } catch (err) {
+
+//     console.error("🔥 SCHEDULE API CRASH:", err);
+
+//     res.status(500).json({
+//       success: false,
+//       error: "Server crashed"
+//     });
+
+//   }
+// };
+
+
 import validator from "validator";
 import Schedule from "../models/Schedule.js";
 import { sendEmail } from "../config/email.js";
 import { sendWhatsApp } from "../config/whatsapp.js";
 
 export const submitSchedule = async (req, res) => {
+
   try {
+
     console.log("📅 Incoming Schedule:", req.body);
 
     const info = {
@@ -134,63 +680,141 @@ export const submitSchedule = async (req, res) => {
       message: validator.escape(req.body.message || "")
     };
 
-    // ---------- VALIDATION ----------
+    /* REQUIRED VALIDATION */
+
     if (!info.fullName || !info.phone || !info.date || !info.time) {
-      return res.status(400).json({ success: false, error: "Missing required fields" });
+      return res.status(400).json({
+        success: false,
+        error: "Missing required fields"
+      });
     }
 
     if (info.email && !validator.isEmail(info.email)) {
-      return res.status(400).json({ success: false, error: "Invalid email" });
+      return res.status(400).json({
+        success: false,
+        error: "Invalid email"
+      });
     }
 
     if (!validator.isMobilePhone(info.phone, "en-IN")) {
-      return res.status(400).json({ success: false, error: "Invalid phone number" });
+      return res.status(400).json({
+        success: false,
+        error: "Invalid phone number"
+      });
     }
 
-    // ---------- SAVE TO MONGODB ----------
-    let saved;
+    /* SAVE TO DATABASE */
+
+    const saved = await Schedule.create(info);
+
+    console.log("✅ Schedule saved:", saved._id);
+
+    /* USER WHATSAPP */
+
     try {
-      saved = await Schedule.create(info);
-      console.log("✅ Schedule saved:", saved._id);
-    } catch (dbErr) {
-      console.error("❌ MongoDB error:", dbErr);
-      return res.status(500).json({ success: false, error: "Database error" });
+
+      await sendWhatsApp(
+        info.phone,
+`Hello ${info.fullName} 👋
+
+✅ Your FREE software demo consultation is confirmed.
+
+📅 Date: ${info.date}
+⏰ Time: ${info.time}
+
+Our expert will guide you about:
+• Tally Prime
+• Marg ERP
+• Busy Accounting Software
+• CCTV Services
+• AC Services
+
+🎁 Free Setup Guidance Included
+
+📞 Call / WhatsApp
++91 9105524440
+
+QuantumNest Peetron`
+      );
+
+      console.log("✅ User WhatsApp Sent");
+
+    } catch (err) {
+      console.log("⚠️ User WhatsApp failed:", err.message);
     }
 
-    // ---------- SEND RESPONSE FIRST ----------
+    /* ADMIN WHATSAPP */
+
+    try {
+
+      await sendWhatsApp(
+        process.env.ADMIN_WHATSAPP,
+`🔥 New Demo Consultation Booked
+
+👤 Name: ${info.fullName}
+📞 Phone: ${info.phone}
+📧 Email: ${info.email || "N/A"}
+
+📅 Date: ${info.date}
+⏰ Time: ${info.time}
+
+💬 Message:
+${info.message || "No message"}
+
+🌐 Source: Website Demo Scheduler`
+      );
+
+      console.log("✅ Admin WhatsApp Sent");
+
+    } catch (err) {
+      console.log("⚠️ Admin WhatsApp failed:", err.message);
+    }
+
+    /* EMAIL */
+
+    if (process.env.ADMIN_EMAIL) {
+
+      try {
+
+        await sendEmail(
+          process.env.ADMIN_EMAIL,
+          "New Demo Consultation Scheduled",
+`Name: ${info.fullName}
+Phone: ${info.phone}
+Email: ${info.email || "N/A"}
+
+Date: ${info.date}
+Time: ${info.time}
+
+Message:
+${info.message || "None"}`
+        );
+
+        console.log("📧 Email Sent");
+
+      } catch (err) {
+        console.log("⚠️ Email failed:", err.message);
+      }
+
+    }
+
+    /* FINAL RESPONSE */
+
     res.status(201).json({
       success: true,
       message: "Schedule booked successfully",
       id: saved._id
     });
 
-    // ---------- EMAIL (Background) ----------
-    if (process.env.ADMIN_EMAIL) {
-      sendEmail(
-        process.env.ADMIN_EMAIL,
-        "New Consultation Scheduled",
-        `
-         Name: ${info.fullName}
-         Phone: ${info.phone}
-         Email: ${info.email || "N/A"}
-         Date: ${info.date}
-         Time: ${info.time}
-         Message: ${info.message || "None"}
-        `
-      ).catch(err => console.log("📧 Email failed:", err.message));
-    }
-
-    // ---------- WHATSAPP (Background) ----------
-    sendWhatsApp(
-      `New Schedule:
-        Name: ${info.fullName}
-        Phone: ${info.phone}
-        Date: ${info.date}
-        Time: ${info.time}`
-    ).catch(err => console.log("📲 WhatsApp failed:", err.message));
-
   } catch (err) {
+
     console.error("🔥 SCHEDULE API CRASH:", err);
-    res.status(500).json({ success: false, error: "Server crashed" });
+
+    res.status(500).json({
+      success: false,
+      error: "Server crashed"
+    });
+
   }
 };
+
