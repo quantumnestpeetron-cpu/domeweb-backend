@@ -10,6 +10,7 @@ import contactRoutes from "./routes/contactRoutes.js";
 import scheduleRoutes from "./routes/scheduleRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import bannerRoutes from "./routes/bannerRoutes.js";
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/banner", bannerRoutes);
 
 /* ------------------ SERVER ------------------ */
 const port = process.env.PORT || 5000;
