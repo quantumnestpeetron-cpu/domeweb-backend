@@ -93,6 +93,8 @@ import scheduleRoutes from "./routes/scheduleRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
+import resellerRoutes from "./routes/resellerRoutes.js";
+
 
 const app = express();
 
@@ -141,6 +143,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/banner", bannerRoutes);
+app.use("/api/reseller", resellerRoutes);
+
 
 /* ------------------ GLOBAL ERROR HANDLER (FIXED) ------------------ */
 app.use((err, req, res, next) => {
