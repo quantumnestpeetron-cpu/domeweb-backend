@@ -197,6 +197,11 @@ const app = express();
 /* ------------------ DEBUG ENV ------------------ */
 // console.log("ENV CHECK:", process.env.MONGO_URI);
 
+console.log("ENV CHECK:", {
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS ? "OK" : "MISSING",
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+});
 /* ------------------ CORS ------------------ */
 app.use(cors({
   origin: "*",

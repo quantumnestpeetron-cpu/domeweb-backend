@@ -496,6 +496,112 @@
 
 // export default router;
 
+// import express from "express";
+// import upload from "../middleware/upload.js";
+// import JobApplication from "../models/JobApplication.js";
+// import { sendEmail } from "../config/email.js";
+
+// const router = express.Router();
+
+// router.post("/apply", upload.single("resume"), async (req, res) => {
+//   try {
+//     const { name, email, phone, type, jobField } = req.body;
+
+//     // ================= VALIDATION =================
+//     if (!name || !email || !phone || !type) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     // ================= CLOUDINARY FILE =================
+//     // ⚠️ IMPORTANT: DO NOT MODIFY THIS URL
+//     let resumeUrl = req.file ? req.file.path : "";
+
+//     // ================= SAVE TO DATABASE =================
+//     const application = await JobApplication.create({
+//       name,
+//       email,
+//       phone,
+//       type,
+//       jobField,
+//       resumeUrl,
+//     });
+
+//     // ================= RESPONSE FAST (IMPORTANT FOR PRODUCTION) =================
+//     res.json({
+//       success: true,
+//       message: "Application submitted successfully",
+//       data: application,
+//     });
+
+//     // ================= BACKGROUND EMAIL PROCESS =================
+//     setImmediate(async () => {
+//       try {
+//         // ================= USER EMAIL =================
+//         const userHtml = `
+//           <div style="font-family: Arial; line-height:1.6;">
+//             <h2>Hi ${name} 👋</h2>
+
+//             <p>We have successfully received your <b>${type}</b> application.</p>
+
+//             <p><b>Job Field:</b> ${jobField || "Not specified"}</p>
+
+//             <p>Our HR team is reviewing your profile and will contact you soon.</p>
+
+//             <br/>
+
+//             <p style="color:green;">
+//               ✔ Thank you for applying with us
+//             </p>
+
+//             <p>— Team QuantumNest</p>
+//           </div>
+//         `;
+
+//         await sendEmail(email, "Application Received ✅", userHtml);
+
+//         // ================= ADMIN EMAIL =================
+//         const adminHtml = `
+//           <div style="font-family: Arial; line-height:1.6;">
+//             <h2>🔥 New ${type.toUpperCase()} Application</h2>
+
+//             <p><b>Name:</b> ${name}</p>
+//             <p><b>Email:</b> ${email}</p>
+//             <p><b>Phone:</b> ${phone}</p>
+//             <p><b>Job Field:</b> ${jobField || "Not specified"}</p>
+
+//             ${
+//               resumeUrl
+//                 ? `<p><b>Resume:</b> <a href="${resumeUrl}" target="_blank">View Resume</a></p>`
+//                 : "<p><b>Resume:</b> Not uploaded</p>"
+//             }
+//           </div>
+//         `;
+
+//         await sendEmail(
+//           process.env.ADMIN_EMAIL,
+//           `🔥 New ${type.toUpperCase()} Application`,
+//           adminHtml
+//         );
+//       } catch (err) {
+//         console.log("EMAIL ERROR (background):", err.message);
+//       }
+//     });
+
+//   } catch (error) {
+//     console.error("🔥 JOB APPLY ERROR:", error);
+
+//     res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//     });
+//   }
+// });
+
+// export default router;
+
 import express from "express";
 import upload from "../middleware/upload.js";
 import JobApplication from "../models/JobApplication.js";
@@ -515,12 +621,20 @@ router.post("/apply", upload.single("resume"), async (req, res) => {
       });
     }
 
-    // ================= CLOUDINARY FILE =================
-    // ⚠️ IMPORTANT: DO NOT MODIFY THIS URL
-    let resumeUrl = req.file ? req.file.path : "";
+    // ================= RESUME HANDLING =================
+    let resumeUrl = "";
 
-    // ================= SAVE TO DATABASE =================
-    const application = await JobApplication.create({
+    if (req.file) {
+      resumeUrl = req.file.path;
+
+      // Fix Cloudinary PDF view issue
+      if (req.file.mimetype === "application/pdf") {
+        resumeUrl = resumeUrl.replace("/upload/", "/upload/fl_attachment/");
+      }
+    }
+
+    // ================= SAVE DB =================
+    await JobApplication.create({
       name,
       email,
       phone,
@@ -529,71 +643,73 @@ router.post("/apply", upload.single("resume"), async (req, res) => {
       resumeUrl,
     });
 
-    // ================= RESPONSE FAST (IMPORTANT FOR PRODUCTION) =================
-    res.json({
-      success: true,
-      message: "Application submitted successfully",
-      data: application,
+    // ================= USER EMAIL =================
+    const userHtml = `
+      <div style="font-family:Arial;padding:10px">
+        <h2>Hi ${name} 👋</h2>
+
+        <p>Thank you for your ${type === "job" ? "job application" : "hiring request"}.</p>
+
+        <p><b>Position:</b> ${jobField || "Not specified"}</p>
+
+        <p>
+          Our team will review your request and contact you soon.
+        </p>
+
+        <br/>
+
+        <p>Regards,<br/>Team QuantumNest</p>
+      </div>
+    `;
+
+    // ================= ADMIN EMAIL =================
+    const adminHtml = `
+      <div style="font-family:Arial;padding:10px">
+        <h2>🔥 New ${type.toUpperCase()} Application</h2>
+
+        <p><b>Name:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Phone:</b> ${phone}</p>
+        <p><b>Field:</b> ${jobField || "N/A"}</p>
+
+        ${
+          resumeUrl
+            ? `<p><b>Resume:</b> <a href="${resumeUrl}" target="_blank">View Resume</a></p>`
+            : "<p><b>Resume:</b> Not uploaded</p>"
+        }
+      </div>
+    `;
+
+    // ================= SEND EMAILS (FAST NON-BLOCKING STYLE) =================
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    // send in background (faster API response)
+    Promise.resolve().then(async () => {
+      try {
+        if (email) {
+          await sendEmail(email, "Application Received ✅", userHtml);
+        }
+
+        if (adminEmail) {
+          await sendEmail(adminEmail, `🔥 New ${type.toUpperCase()} Request`, adminHtml);
+        } else {
+          console.log("❌ ADMIN_EMAIL missing in environment variables");
+        }
+      } catch (err) {
+        console.log("❌ EMAIL ERROR:", err.message);
+      }
     });
 
-    // ================= BACKGROUND EMAIL PROCESS =================
-    setImmediate(async () => {
-      try {
-        // ================= USER EMAIL =================
-        const userHtml = `
-          <div style="font-family: Arial; line-height:1.6;">
-            <h2>Hi ${name} 👋</h2>
-
-            <p>We have successfully received your <b>${type}</b> application.</p>
-
-            <p><b>Job Field:</b> ${jobField || "Not specified"}</p>
-
-            <p>Our HR team is reviewing your profile and will contact you soon.</p>
-
-            <br/>
-
-            <p style="color:green;">
-              ✔ Thank you for applying with us
-            </p>
-
-            <p>— Team QuantumNest</p>
-          </div>
-        `;
-
-        await sendEmail(email, "Application Received ✅", userHtml);
-
-        // ================= ADMIN EMAIL =================
-        const adminHtml = `
-          <div style="font-family: Arial; line-height:1.6;">
-            <h2>🔥 New ${type.toUpperCase()} Application</h2>
-
-            <p><b>Name:</b> ${name}</p>
-            <p><b>Email:</b> ${email}</p>
-            <p><b>Phone:</b> ${phone}</p>
-            <p><b>Job Field:</b> ${jobField || "Not specified"}</p>
-
-            ${
-              resumeUrl
-                ? `<p><b>Resume:</b> <a href="${resumeUrl}" target="_blank">View Resume</a></p>`
-                : "<p><b>Resume:</b> Not uploaded</p>"
-            }
-          </div>
-        `;
-
-        await sendEmail(
-          process.env.ADMIN_EMAIL,
-          `🔥 New ${type.toUpperCase()} Application`,
-          adminHtml
-        );
-      } catch (err) {
-        console.log("EMAIL ERROR (background):", err.message);
-      }
+    // ================= RESPONSE =================
+    return res.json({
+      success: true,
+      message: "Application submitted successfully",
     });
 
   } catch (error) {
     console.error("🔥 JOB APPLY ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Server error",
     });
