@@ -190,6 +190,7 @@ import authRoutes from "./routes/authRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import resellerRoutes from "./routes/resellerRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
+import testimonialRoutes from "./routes/testimonialRoutes.js";
 import adminJobRoutes from "./routes/adminJobRoutes.js";
 
 const app = express();
@@ -231,6 +232,7 @@ app.use("/api/schedule", scheduleRoutes);
 app.use("/api/banner", bannerRoutes);
 app.use("/api/reseller", resellerRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/admin/jobs", adminJobRoutes);
 
 
