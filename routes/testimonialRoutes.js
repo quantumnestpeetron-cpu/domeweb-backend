@@ -1,108 +1,3 @@
-// import express from "express";
-// import Testimonial from "../models/Testimonial.js";
-
-// const router = express.Router();
-
-// /* =========================
-//    GET ALL TESTIMONIALS
-// ========================= */
-// router.get("/", async (req, res) => {
-//   try {
-//     const testimonials = await Testimonial.find().sort({
-//       createdAt: -1,
-//     });
-
-//     res.json(testimonials);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
-
-// /* =========================
-//    ADD TESTIMONIAL
-// ========================= */
-// router.post("/", async (req, res) => {
-//   try {
-//     const { name, role, image, text, rating } = req.body;
-
-//     const testimonial = new Testimonial({
-//       name,
-//       role,
-//       image,
-//       text,
-//       rating,
-//     });
-
-//     await testimonial.save();
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Review submitted successfully",
-//       testimonial,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
-
-// export default router;
-
-
-// routes/testimonialRoutes.js
-
-// import express from "express";
-// import Testimonial from "../models/Testimonial.js";
-
-// const router = express.Router();
-
-// /* =========================
-//    GET TESTIMONIALS
-// ========================= */
-// router.get("/", async (req, res) => {
-//   try {
-//     const testimonials = await Testimonial.find().sort({
-//       createdAt: -1,
-//     });
-
-//     res.json(testimonials);
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// });
-
-// /* =========================
-//    ADD TESTIMONIAL
-// ========================= */
-// router.post("/", async (req, res) => {
-//   try {
-//     const { name, role, text, img, rating } = req.body;
-
-//     const testimonial = new Testimonial({
-//       name,
-//       role,
-//       text,
-//       img,
-//       rating,
-//     });
-
-//     await testimonial.save();
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Review Added Successfully",
-//       testimonial,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       message: error.message,
-//     });
-//   }
-// });
-
-// export default router;
-
 import express from "express";
 import rateLimit from "express-rate-limit";
 import Testimonial from "../models/Testimonial.js";
@@ -199,5 +94,34 @@ router.post(
     }
   }
 );
+
+/* =========================
+   DELETE TESTIMONIAL
+========================= */
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const testimonial = await Testimonial.findByIdAndDelete(
+      req.params.id
+    );
+
+    if (!testimonial) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Review deleted successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
 export default router;
